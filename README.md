@@ -1,7 +1,7 @@
 # iotdb_mongodb_odl_server
 
 This is a [odl](https://www.mongodb.com/initiatives/data-as-a-service) based on mongodb.
-This app created with [Boost c++ libraries](https://www.boost.org/) , [mongo database](https://www.mongodb.com/) and [c++ 2014 standards](https://en.wikipedia.org/wiki/C%2B%2B14) .I'm developing this application only on linux and I don't know if it works on windows too and I don't care too.  
+This app created with [Boost c++ libraries](https://www.boost.org/) , [mongo database](https://www.mongodb.com/) and [c++ 2017 standards](https://en.wikipedia.org/wiki/C%2B%2B17) .I'm developing this application only on linux and I don't know if it works on windows too and I don't care too.  
 After completing this project, I will upload it at [iotdb.ir](iotdb.ir)
 
 ## Getting Started
@@ -12,7 +12,7 @@ These instructions will get you a copy of the project up and running on your loc
 
 * [mongodb  instalation](https://docs.mongodb.com/manual/administration/install-on-linux/)
 * [cmake    instalation](https://cmake.org/install/)
-* [Boost    instalation](https://www.boost.org/doc/libs/1_61_0/more/getting_started/unix-variants.html)
+* [Boost    instalation](https://www.boost.org/doc/libs/1_70_0/more/getting_started/unix-variants.html)
 * [MONGOCXX instalation](http://mongodb.github.io/mongo-cxx-driver/mongocxx-v3/installation/)
 
 ### Installing

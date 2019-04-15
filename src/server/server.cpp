@@ -33,7 +33,8 @@ void server::operator()(boost::system::error_code ec, std::size_t length)
 	// hoisting it outside the coroutine. An alternative approach would be
 	// to
 	// check the value of ec after each yield for an asynchronous operation.
-	if (!ec) {
+	if (!ec)
+	{
 		// On reentering a coroutine, control jumps to the location of the
 		// last
 		// yield or fork. The argument to the "reenter" pseudo-keyword can
@@ -41,11 +42,12 @@ void server::operator()(boost::system::error_code ec, std::size_t length)
 		// pointer or reference to an object of type coroutine.
 		reenter(this)
 		{
-			// Loop to accept incoming connections.
-			do {
+		// Loop to accept incoming connections.
+		do
+			{
 			// Create a new socket for the next incoming connection.
 			socket_.reset(
-				new tcp::socket(acceptor_->get_io_service()));
+				new tcp::socket(acceptor_->get_executor()));
 
 			// Accept a new connection. The "yield" pseudo-keyword
 			// saves the current
@@ -83,9 +85,10 @@ void server::operator()(boost::system::error_code ec, std::size_t length)
 		buffer_.reset(new boost::array<char, 8192>);
 		request_.reset(new request);
 
-			// Loop until a complete request (or an invalid one) has
-			// been received.
-			do {
+		// Loop until a complete request (or an invalid one) has
+		// been received.
+		do
+			{
 			// Receive some more data. When control resumes at the
 			// following line,
 			// the ec and length parameters reflect the result of
@@ -107,13 +110,15 @@ void server::operator()(boost::system::error_code ec, std::size_t length)
 		// Create the reply object that will be sent back to the client.
 		reply_.reset(new reply);
 
-			if (valid_request_) {
+		if (valid_request_)
+			{
 			// A valid request was received. Call the user-supplied
 			// function object
 			// to process the request and compose a reply.
 			request_handler_(*request_, *reply_);
 			}
-			else {
+		else
+			{
 			// The request was invalid.
 			*reply_ = reply::stock_reply(reply::bad_request);
 			}
@@ -135,5 +140,5 @@ void server::operator()(boost::system::error_code ec, std::size_t length)
 
 #include "unyield.hpp" // Disable the pseudo-keywords reenter, yield and fork.
 
-} // namespace server4
+} // namespace server
 } // namespace http

@@ -129,8 +129,8 @@ add_library(Database
   )
 
 
-set (CMAKE_CXX_STANDARD 14)
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=gnu++14 -D__STRICT_ANSI__")
+set (CMAKE_CXX_STANDARD 17)
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=gnu++17 -D__STRICT_ANSI__")
 
 find_package (Threads)
 find_package(libbsoncxx)
