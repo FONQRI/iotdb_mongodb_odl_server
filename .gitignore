@@ -32,7 +32,7 @@
 *.app
 
 #cmake
-*.user
+*.user.*
 *.txt.user
 
 #doc

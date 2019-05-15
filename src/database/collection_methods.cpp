@@ -2173,6 +2173,314 @@ iotdb::database::distinct(std::string username, std::string database_name,
 	}
 }
 
+void iotdb::database::aggregate_oprate(mongocxx::pipeline &pipeline,
+					   bsoncxx::types::b_document doc)
+{
+
+	bool successful{false};
+	try
+	{
+		auto op_doc = doc.view()["match"].get_document();
+		pipeline.match(op_doc.view());
+		successful = true;
+	}
+	catch (...)
+	{
+		successful = false;
+	}
+
+	if (!successful)
+	{
+		try
+		{
+			auto op_doc = doc.view()["project"].get_document();
+			pipeline.project(op_doc.view());
+			successful = true;
+		}
+		catch (...)
+		{
+			successful = false;
+		}
+	}
+
+	if (!successful)
+	{
+		try
+		{
+			int limit = doc.view()["limit"].get_int32();
+			pipeline.limit(limit);
+			successful = true;
+		}
+		catch (...)
+		{
+			successful = false;
+		}
+	}
+
+	if (!successful)
+	{
+		try
+		{
+			int sample = doc.view()["sample"].get_int32();
+			pipeline.sample(sample);
+			successful = true;
+		}
+		catch (...)
+		{
+			successful = false;
+		}
+	}
+	if (!successful)
+	{
+		try
+		{
+			int skip = doc.view()["skip"].get_int32();
+			pipeline.skip(skip);
+			successful = true;
+		}
+		catch (...)
+		{
+			successful = false;
+		}
+	}
+	if (!successful)
+	{
+		try
+		{
+			std::string out =
+			doc.view()["out"].get_utf8().value.to_string();
+			pipeline.out(out);
+			successful = true;
+		}
+		catch (...)
+		{
+			successful = false;
+		}
+	}
+	if (!successful)
+	{
+		try
+		{
+			std::string count =
+			doc.view()["count"].get_utf8().value.to_string();
+			pipeline.count(count);
+			successful = true;
+		}
+		catch (...)
+		{
+			successful = false;
+		}
+	}
+	if (!successful)
+	{
+		try
+		{
+			auto op_doc = doc.view()["add_fields"].get_document();
+			pipeline.add_fields(op_doc.view());
+			successful = true;
+		}
+		catch (...)
+		{
+			successful = false;
+		}
+	}
+	if (!successful)
+	{
+		try
+		{
+			auto op_doc = doc.view()["bucket"].get_document();
+			pipeline.bucket(op_doc.view());
+			successful = true;
+		}
+		catch (...)
+		{
+			successful = false;
+		}
+	}
+	if (!successful)
+	{
+		try
+		{
+			auto op_doc = doc.view()["bucket_auto"].get_document();
+			pipeline.bucket_auto(op_doc.view());
+			successful = true;
+		}
+		catch (...)
+		{
+			successful = false;
+		}
+	}
+	if (!successful)
+	{
+		try
+		{
+			auto op_doc = doc.view()["coll_stats"].get_document();
+			pipeline.coll_stats(op_doc.view());
+			successful = true;
+		}
+		catch (...)
+		{
+			successful = false;
+		}
+	}
+	if (!successful)
+	{
+		try
+		{
+			auto op_doc = doc.view()["facet"].get_document();
+			pipeline.facet(op_doc.view());
+			successful = true;
+		}
+		catch (...)
+		{
+			successful = false;
+		}
+	}
+	if (!successful)
+	{
+		try
+		{
+			auto op_doc = doc.view()["geo_near"].get_document();
+			pipeline.geo_near(op_doc.view());
+			successful = true;
+		}
+		catch (...)
+		{
+			successful = false;
+		}
+	}
+	if (!successful)
+	{
+		try
+		{
+			auto op_doc = doc.view()["graph_lookup"].get_document();
+			pipeline.graph_lookup(op_doc.view());
+			successful = true;
+		}
+		catch (...)
+		{
+			successful = false;
+		}
+	}
+	if (!successful)
+	{
+		try
+		{
+			auto op_doc = doc.view()["group"].get_document();
+			pipeline.group(op_doc.view());
+			successful = true;
+		}
+		catch (...)
+		{
+			successful = false;
+		}
+	}
+	if (!successful)
+	{
+		try
+		{
+			auto op_doc = doc.view()["lookup"].get_document();
+			pipeline.lookup(op_doc.view());
+			successful = true;
+		}
+		catch (...)
+		{
+			successful = false;
+		}
+	}
+
+	if (!successful)
+	{
+		try
+		{
+			auto op_doc = doc.view()["redact"].get_document();
+			pipeline.redact(op_doc.view());
+			successful = true;
+		}
+		catch (...)
+		{
+			successful = false;
+		}
+	}
+
+	if (!successful)
+	{
+		try
+		{
+			auto op_doc = doc.view()["replace_root"].get_document();
+			pipeline.replace_root(op_doc.view());
+			successful = true;
+		}
+		catch (...)
+		{
+			successful = false;
+		}
+	}
+	if (!successful)
+	{
+		try
+		{
+			auto op_doc = doc.view()["sort"].get_document();
+			pipeline.sort(op_doc.view());
+			successful = true;
+		}
+		catch (...)
+		{
+			successful = false;
+		}
+	}
+
+	if (!successful)
+	{
+		try
+		{
+			auto op_doc = doc.view()["sort_by_count"].get_document();
+			pipeline.sort_by_count(op_doc.view());
+			successful = true;
+		}
+		catch (...)
+		{
+			successful = false;
+		}
+	}
+
+	if (!successful)
+	{
+		try
+		{
+			auto op_doc = doc.view()["unwind"].get_document();
+			pipeline.unwind(op_doc.view());
+			successful = true;
+		}
+		catch (...)
+		{
+			successful = false;
+		}
+	}
+
+	if (!successful)
+	{
+		try
+		{
+			bool op_doc = doc.view()["index_stats"].get_bool();
+			if (op_doc)
+			{
+				pipeline.index_stats();
+			}
+			successful = true;
+		}
+		catch (...)
+		{
+			successful = false;
+		}
+	}
+
+	if (!successful)
+	{
+		throw std::invalid_argument("invalid pipeline opration");
+	}
+}
+
 std::string iotdb::database::aggregate(
 	std::string username, std::string database_name,
 	optional_bool allow_disk_use, optional_bool use_cursor,
@@ -2181,17 +2489,7 @@ std::string iotdb::database::aggregate(
 	optional_string acknowledge_level, optional_string tag,
 	optional_bool journal, optional_int majority, optional_int timeout,
 	optional_int nodes, optional_ducument hint, optional_string hint_str,
-	optional_int limit, optional_int sample, optional_int skip,
-	optional_string out, optional_string count, optional_ducument add_fields,
-	optional_ducument bucket, optional_ducument bucket_auto,
-	optional_ducument coll_stats, optional_ducument facet,
-	optional_ducument geo_near, optional_ducument graph_lookup,
-	optional_ducument group, optional_bool index_stats,
-	optional_ducument lookup, optional_ducument match,
-	optional_ducument project, optional_ducument redact,
-	optional_ducument replace_root, optional_ducument sort,
-	optional_ducument sort_by_count, optional_string sort_by_count_str,
-	optional_ducument unwind, optional_string unwind_str)
+	optional_array pipeline_array)
 {
 	// create connection
 	mongocxx::client connection{mongocxx::uri{}};
@@ -2331,127 +2629,15 @@ std::string iotdb::database::aggregate(
 
 		mongocxx::pipeline pipeline = mongocxx::pipeline();
 
-		if (limit.is_initialized())
+		if (pipeline_array.is_initialized())
 		{
-			pipeline.limit(limit.get());
-		}
-
-		if (sample.is_initialized())
-		{
-			pipeline.sample(sample.get());
-		}
-
-		if (skip.is_initialized())
-		{
-			pipeline.skip(skip.get());
-		}
-
-		if (out.is_initialized())
-		{
-			pipeline.out(out.get());
-		}
-
-		if (count.is_initialized())
-		{
-			pipeline.count(count.get());
-		}
-
-		if (add_fields.is_initialized())
-		{
-			pipeline.add_fields(add_fields.get().view());
-		}
-
-		if (bucket.is_initialized())
-		{
-			pipeline.bucket(bucket.get().view());
-		}
-
-		if (bucket_auto.is_initialized())
-		{
-			pipeline.bucket_auto(bucket_auto.get().view());
-		}
-
-		if (coll_stats.is_initialized())
-		{
-			pipeline.coll_stats(coll_stats.get().view());
-		}
-
-		if (facet.is_initialized())
-		{
-			pipeline.facet(facet.get().view());
-		}
-
-		if (geo_near.is_initialized())
-		{
-			pipeline.geo_near(geo_near.get().view());
-		}
-
-		if (graph_lookup.is_initialized())
-		{
-			pipeline.graph_lookup(graph_lookup.get().view());
-		}
-
-		if (group.is_initialized())
-		{
-			pipeline.group(group.get().view());
-		}
-
-		if (index_stats.is_initialized())
-		{
-			if (index_stats.get())
+			for (const auto &element : pipeline_array.get().value)
 			{
-				pipeline.index_stats();
+				bsoncxx::types::b_document doc =
+				element.get_value().get_document();
+				aggregate_oprate(pipeline, doc);
 			}
 		}
-
-		if (lookup.is_initialized())
-		{
-			pipeline.lookup(lookup.get().view());
-		}
-
-		if (match.is_initialized())
-		{
-			pipeline.match(match.get().view());
-		}
-
-		if (project.is_initialized())
-		{
-			pipeline.project(project.get().view());
-		}
-
-		if (redact.is_initialized())
-		{
-			pipeline.redact(redact.get().view());
-		}
-
-		if (replace_root.is_initialized())
-		{
-			pipeline.replace_root(replace_root.get().view());
-		}
-
-		if (sort.is_initialized())
-		{
-			pipeline.sort(sort.get().view());
-		}
-
-		if (sort_by_count.is_initialized())
-		{
-			pipeline.sort_by_count(sort_by_count.get().view());
-		}
-		else if (sort_by_count_str.is_initialized())
-		{
-			pipeline.sort_by_count(sort_by_count_str.get());
-		}
-
-		if (unwind.is_initialized())
-		{
-			pipeline.unwind(unwind.get().view());
-		}
-		else if (unwind_str.is_initialized())
-		{
-			pipeline.unwind(unwind_str.get());
-		}
-
 		auto cursor = collection.aggregate(pipeline, options);
 
 		std::string reply{};
