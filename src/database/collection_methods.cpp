@@ -25,9 +25,8 @@
 std::string iotdb::database::insert_many(
 	std::string username, std::string database_name,
 	std::vector<bsoncxx::document::value> insert_document_array,
-	boost::optional<std::string> acknowledge_level,
-	boost::optional<std::string> tag, boost::optional<bool> journal,
-	boost::optional<int> majority, boost::optional<int> timeout,
+	boost::optional<std::string> acknowledge_level, boost::optional<std::string> tag,
+	boost::optional<bool> journal, boost::optional<int> majority, boost::optional<int> timeout,
 	boost::optional<int> nodes, boost::optional<bool> ordered,
 	boost::optional<bool> bypass_document_validation)
 {
@@ -40,84 +39,53 @@ std::string iotdb::database::insert_many(
 	// create collection
 	auto collection = database[database_name];
 
-	try
-	{
+	try {
 		mongocxx::options::insert options;
 
-		if (ordered.is_initialized())
-		{
+		if (ordered.is_initialized()) {
 			options.ordered(ordered.get());
 		}
 
-		if (journal.is_initialized() || majority.is_initialized() ||
-		timeout.is_initialized() || nodes.is_initialized() ||
-		tag.is_initialized() || acknowledge_level.is_initialized())
-		{
+		if (journal.is_initialized() || majority.is_initialized() || timeout.is_initialized()
+			|| nodes.is_initialized() || tag.is_initialized()
+			|| acknowledge_level.is_initialized()) {
 
 			// create write_concern
 			// https://docs.mongodb.com/manual/reference/glossary/#term-write-concern
-			mongocxx::write_concern write_concern =
-			mongocxx::write_concern();
+			mongocxx::write_concern write_concern = mongocxx::write_concern();
 
-			if (journal.is_initialized())
-			{
+			if (journal.is_initialized()) {
 				write_concern.journal(journal.get());
 			}
-			if (majority.is_initialized())
-			{
+			if (majority.is_initialized()) {
 
-				write_concern.majority(
-				std::chrono::milliseconds(majority.get()));
+				write_concern.majority(std::chrono::milliseconds(majority.get()));
 			}
 
-			if (timeout.is_initialized())
-			{
-				write_concern.timeout(
-				std::chrono::milliseconds(timeout.get()));
+			if (timeout.is_initialized()) {
+				write_concern.timeout(std::chrono::milliseconds(timeout.get()));
 			}
 
-			if (nodes.is_initialized())
-			{
+			if (nodes.is_initialized()) {
 				write_concern.nodes(nodes.get());
 			}
 
-			if (tag.is_initialized())
-			{
-				write_concern.tag(
-				mongocxx::stdx::string_view(tag.get()));
+			if (tag.is_initialized()) {
+				write_concern.tag(mongocxx::stdx::string_view(tag.get()));
 			}
 
-			if (acknowledge_level.is_initialized())
-			{
-				if (acknowledge_level.get() == "k_acknowledged")
-				{
+			if (acknowledge_level.is_initialized()) {
+				if (acknowledge_level.get() == "k_acknowledged") {
+					write_concern.acknowledge_level(mongocxx::write_concern::level::k_acknowledged);
+				} else if (acknowledge_level.get() == "k_default") {
+					write_concern.acknowledge_level(mongocxx::write_concern::level::k_acknowledged);
+				} else if (acknowledge_level.get() == "k_majority") {
+					write_concern.acknowledge_level(mongocxx::write_concern::level::k_majority);
+				} else if (acknowledge_level.get() == "k_tag") {
+					write_concern.acknowledge_level(mongocxx::write_concern::level::k_tag);
+				} else if (acknowledge_level.get() == "k_unacknowledged") {
 					write_concern.acknowledge_level(
-					mongocxx::write_concern::level::
-						k_acknowledged);
-				}
-				else if (acknowledge_level.get() == "k_default")
-				{
-					write_concern.acknowledge_level(
-					mongocxx::write_concern::level::
-						k_acknowledged);
-				}
-				else if (acknowledge_level.get() == "k_majority")
-				{
-					write_concern.acknowledge_level(
-					mongocxx::write_concern::level::
-						k_majority);
-				}
-				else if (acknowledge_level.get() == "k_tag")
-				{
-					write_concern.acknowledge_level(
-					mongocxx::write_concern::level::k_tag);
-				}
-				else if (acknowledge_level.get() ==
-					 "k_unacknowledged")
-				{
-					write_concern.acknowledge_level(
-					mongocxx::write_concern::level::
-						k_unacknowledged);
+						mongocxx::write_concern::level::k_unacknowledged);
 				}
 			}
 
@@ -126,16 +94,12 @@ std::string iotdb::database::insert_many(
 		}
 
 		// add bypass_document_validation to options
-		if (bypass_document_validation.is_initialized())
-		{
-			options.bypass_document_validation(
-			bypass_document_validation.get());
+		if (bypass_document_validation.is_initialized()) {
+			options.bypass_document_validation(bypass_document_validation.get());
 		}
 		collection.insert_many(insert_document_array, options);
 		return core::reply::answer_done();
-	}
-	catch (const mongocxx::exception &e)
-	{
+	} catch (const mongocxx::exception &e) {
 		// make error json
 		return core::reply::database_error(e.what());
 	}
@@ -150,14 +114,14 @@ std::string iotdb::database::insert_many(
  * @param insert_document	: BSON document to insert
  * @return answer reply
  */
-std::string iotdb::database::insert_one(
-	std::string username, std::string database_name,
-	bsoncxx::types::b_document insert_document,
-	boost::optional<std::string> acknowledge_level,
-	boost::optional<std::string> tag, boost::optional<bool> journal,
-	boost::optional<int> majority, boost::optional<int> timeout,
-	boost::optional<int> nodes, boost::optional<bool> ordered,
-	boost::optional<bool> bypass_document_validation)
+std::string iotdb::database::insert_one(std::string username, std::string database_name,
+										bsoncxx::types::b_document insert_document,
+										boost::optional<std::string> acknowledge_level,
+										boost::optional<std::string> tag,
+										boost::optional<bool> journal,
+										boost::optional<int> majority, boost::optional<int> timeout,
+										boost::optional<int> nodes, boost::optional<bool> ordered,
+										boost::optional<bool> bypass_document_validation)
 {
 	// create connection
 	mongocxx::client connection{mongocxx::uri{}};
@@ -168,84 +132,53 @@ std::string iotdb::database::insert_one(
 	// create collection
 	auto collection = database[database_name];
 
-	try
-	{
+	try {
 		mongocxx::options::insert options;
 
-		if (ordered.is_initialized())
-		{
+		if (ordered.is_initialized()) {
 			options.ordered(ordered.get());
 		}
 
-		if (journal.is_initialized() || majority.is_initialized() ||
-		timeout.is_initialized() || nodes.is_initialized() ||
-		tag.is_initialized() || acknowledge_level.is_initialized())
-		{
+		if (journal.is_initialized() || majority.is_initialized() || timeout.is_initialized()
+			|| nodes.is_initialized() || tag.is_initialized()
+			|| acknowledge_level.is_initialized()) {
 
 			// create write_concern
 			// https://docs.mongodb.com/manual/reference/glossary/#term-write-concern
-			mongocxx::write_concern write_concern =
-			mongocxx::write_concern();
+			mongocxx::write_concern write_concern = mongocxx::write_concern();
 
-			if (journal.is_initialized())
-			{
+			if (journal.is_initialized()) {
 				write_concern.journal(journal.get());
 			}
-			if (majority.is_initialized())
-			{
+			if (majority.is_initialized()) {
 
-				write_concern.majority(
-				std::chrono::milliseconds(majority.get()));
+				write_concern.majority(std::chrono::milliseconds(majority.get()));
 			}
 
-			if (timeout.is_initialized())
-			{
-				write_concern.timeout(
-				std::chrono::milliseconds(timeout.get()));
+			if (timeout.is_initialized()) {
+				write_concern.timeout(std::chrono::milliseconds(timeout.get()));
 			}
 
-			if (nodes.is_initialized())
-			{
+			if (nodes.is_initialized()) {
 				write_concern.nodes(nodes.get());
 			}
 
-			if (tag.is_initialized())
-			{
-				write_concern.tag(
-				mongocxx::stdx::string_view(tag.get()));
+			if (tag.is_initialized()) {
+				write_concern.tag(mongocxx::stdx::string_view(tag.get()));
 			}
 
-			if (acknowledge_level.is_initialized())
-			{
-				if (acknowledge_level.get() == "k_acknowledged")
-				{
+			if (acknowledge_level.is_initialized()) {
+				if (acknowledge_level.get() == "k_acknowledged") {
+					write_concern.acknowledge_level(mongocxx::write_concern::level::k_acknowledged);
+				} else if (acknowledge_level.get() == "k_default") {
+					write_concern.acknowledge_level(mongocxx::write_concern::level::k_acknowledged);
+				} else if (acknowledge_level.get() == "k_majority") {
+					write_concern.acknowledge_level(mongocxx::write_concern::level::k_majority);
+				} else if (acknowledge_level.get() == "k_tag") {
+					write_concern.acknowledge_level(mongocxx::write_concern::level::k_tag);
+				} else if (acknowledge_level.get() == "k_unacknowledged") {
 					write_concern.acknowledge_level(
-					mongocxx::write_concern::level::
-						k_acknowledged);
-				}
-				else if (acknowledge_level.get() == "k_default")
-				{
-					write_concern.acknowledge_level(
-					mongocxx::write_concern::level::
-						k_acknowledged);
-				}
-				else if (acknowledge_level.get() == "k_majority")
-				{
-					write_concern.acknowledge_level(
-					mongocxx::write_concern::level::
-						k_majority);
-				}
-				else if (acknowledge_level.get() == "k_tag")
-				{
-					write_concern.acknowledge_level(
-					mongocxx::write_concern::level::k_tag);
-				}
-				else if (acknowledge_level.get() ==
-					 "k_unacknowledged")
-				{
-					write_concern.acknowledge_level(
-					mongocxx::write_concern::level::
-						k_unacknowledged);
+						mongocxx::write_concern::level::k_unacknowledged);
 				}
 			}
 
@@ -254,17 +187,13 @@ std::string iotdb::database::insert_one(
 		}
 
 		// add bypass_document_validation to options
-		if (bypass_document_validation.is_initialized())
-		{
-			options.bypass_document_validation(
-			bypass_document_validation.get());
+		if (bypass_document_validation.is_initialized()) {
+			options.bypass_document_validation(bypass_document_validation.get());
 		}
 
 		collection.insert_one(insert_document.view(), options);
 		return core::reply::answer_done();
-	}
-	catch (const mongocxx::exception &e)
-	{
+	} catch (const mongocxx::exception &e) {
 		// make error json
 		return core::reply::database_error(e.what());
 	}
@@ -292,14 +221,13 @@ std::string iotdb::database::insert_one(
  * or this one for errors
  * :"{"isSuccessful":false,"Message":" + what happened + "}"
  */
-std::string iotdb::database::find(
-	std::string username, std::string database_name,
-	bsoncxx::types::b_document query_document,
-	boost::optional<bsoncxx::types::b_document> projection_document,
-	boost::optional<bsoncxx::types::b_document> sort_document,
-	boost::optional<bsoncxx::types::b_document> min_document,
-	boost::optional<bsoncxx::types::b_document> max_document,
-	boost::optional<size_t> limit_number_of_docs)
+std::string iotdb::database::find(std::string username, std::string database_name,
+								  bsoncxx::types::b_document query_document,
+								  boost::optional<bsoncxx::types::b_document> projection_document,
+								  boost::optional<bsoncxx::types::b_document> sort_document,
+								  boost::optional<bsoncxx::types::b_document> min_document,
+								  boost::optional<bsoncxx::types::b_document> max_document,
+								  boost::optional<size_t> limit_number_of_docs)
 {
 	// create connection
 	mongocxx::client connection{mongocxx::uri{}};
@@ -310,34 +238,28 @@ std::string iotdb::database::find(
 	// create collection
 	auto collection = database[database_name];
 
-	try
-	{
+	try {
 
 		// create option
 		mongocxx::options::find options = mongocxx::options::find{};
-		if (projection_document.is_initialized())
-		{
+		if (projection_document.is_initialized()) {
 			options.projection(projection_document.get().view());
 		}
 
-		if (sort_document.is_initialized())
-		{
+		if (sort_document.is_initialized()) {
 			options.sort(sort_document.get().view());
 		}
 
-		if (min_document.is_initialized())
-		{
+		if (min_document.is_initialized()) {
 			options.min(min_document.get().view());
 		}
 
-		if (max_document.is_initialized())
-		{
+		if (max_document.is_initialized()) {
 			options.max(max_document.get().view());
 		}
 
 		// limit number of docs
-		if (limit_number_of_docs.is_initialized())
-		{
+		if (limit_number_of_docs.is_initialized()) {
 			options.limit(limit_number_of_docs.get());
 		}
 
@@ -345,14 +267,12 @@ std::string iotdb::database::find(
 		std::string reply{};
 
 		reply.append("[");
-		for (auto &&doc : cursor)
-		{
+		for (auto &&doc : cursor) {
 			reply.append(bsoncxx::to_json(doc) + ",");
 		}
 
 		// remove final "," character if ther is any element
-		if (reply.size() > 2)
-		{
+		if (reply.size() > 2) {
 			reply.erase(reply.size() - 1, 1);
 		}
 
@@ -360,9 +280,7 @@ std::string iotdb::database::find(
 
 		// make reply json
 		return core::reply::answer(reply);
-	}
-	catch (const mongocxx::exception &e)
-	{
+	} catch (const mongocxx::exception &e) {
 		// make error json
 		return core::reply::database_error(e.what());
 	}
@@ -390,8 +308,7 @@ std::string iotdb::database::find(
  * :"{"isSuccessful":false,"Message":" + what happened + "}"
  */
 std::string iotdb::database::find_one(
-	std::string username, std::string database_name,
-	bsoncxx::types::b_document query_document,
+	std::string username, std::string database_name, bsoncxx::types::b_document query_document,
 	boost::optional<bsoncxx::types::b_document> projection_document,
 	boost::optional<bsoncxx::types::b_document> sort_document,
 	boost::optional<bsoncxx::types::b_document> min_document,
@@ -408,29 +325,24 @@ std::string iotdb::database::find_one(
 	// create collection
 	auto collection = database[database_name];
 
-	try
-	{
+	try {
 
 		// create option
 		mongocxx::options::find options = mongocxx::options::find{};
 
-		if (projection_document.is_initialized())
-		{
+		if (projection_document.is_initialized()) {
 			options.projection(projection_document.get().view());
 		}
 
-		if (sort_document.is_initialized())
-		{
+		if (sort_document.is_initialized()) {
 			options.sort(sort_document.get().view());
 		}
 
-		if (min_document.is_initialized())
-		{
+		if (min_document.is_initialized()) {
 			options.min(min_document.get().view());
 		}
 
-		if (max_document.is_initialized())
-		{
+		if (max_document.is_initialized()) {
 			options.max(max_document.get().view());
 		}
 
@@ -442,9 +354,7 @@ std::string iotdb::database::find_one(
 
 		// make reply json
 		return core::reply::answer(reply);
-	}
-	catch (const mongocxx::exception &e)
-	{
+	} catch (const mongocxx::exception &e) {
 		// create json from error
 		return core::reply::database_error(e.what());
 	}
@@ -493,13 +403,11 @@ std::string iotdb::database::find_one(
  */
 
 std::string iotdb::database::update_many(
-	std::string username, std::string database_name,
-	bsoncxx::types::b_document filter_document,
+	std::string username, std::string database_name, bsoncxx::types::b_document filter_document,
 	bsoncxx::types::b_document update_document,
 	boost::optional<bsoncxx::types::b_document> collation,
-	boost::optional<std::string> acknowledge_level,
-	boost::optional<std::string> tag, boost::optional<bool> journal,
-	boost::optional<int> majority, boost::optional<int> timeout,
+	boost::optional<std::string> acknowledge_level, boost::optional<std::string> tag,
+	boost::optional<bool> journal, boost::optional<int> majority, boost::optional<int> timeout,
 	boost::optional<int> nodes, boost::optional<bool> upsert,
 	boost::optional<bool> bypass_document_validation)
 {
@@ -512,97 +420,63 @@ std::string iotdb::database::update_many(
 	// create collection
 	auto collection = database[database_name];
 
-	try
-	{
+	try {
 
 		// create option
 		mongocxx::options::update options = mongocxx::options::update{};
 
-		if (collation.is_initialized())
-		{
+		if (collation.is_initialized()) {
 			options.collation(collation.get().view());
 		}
 
-		if (upsert.is_initialized())
-		{
+		if (upsert.is_initialized()) {
 			options.upsert(upsert.get());
 		}
 
-		if (bypass_document_validation.is_initialized())
-		{
-			options.bypass_document_validation(
-			bypass_document_validation.get());
+		if (bypass_document_validation.is_initialized()) {
+			options.bypass_document_validation(bypass_document_validation.get());
 		}
 
-		if (journal.is_initialized() || majority.is_initialized() ||
-		timeout.is_initialized() || nodes.is_initialized() ||
-		tag.is_initialized() || acknowledge_level.is_initialized())
-		{
+		if (journal.is_initialized() || majority.is_initialized() || timeout.is_initialized()
+			|| nodes.is_initialized() || tag.is_initialized()
+			|| acknowledge_level.is_initialized()) {
 
 			// create write_concern
 			// https://docs.mongodb.com/manual/reference/glossary/#term-write-concern
-			mongocxx::write_concern write_concern =
-			mongocxx::write_concern();
+			mongocxx::write_concern write_concern = mongocxx::write_concern();
 
-			if (journal.is_initialized())
-			{
+			if (journal.is_initialized()) {
 				write_concern.journal(journal.get());
 			}
-			if (majority.is_initialized())
-			{
+			if (majority.is_initialized()) {
 
-				write_concern.majority(
-				std::chrono::milliseconds(majority.get()));
+				write_concern.majority(std::chrono::milliseconds(majority.get()));
 			}
 
-			if (timeout.is_initialized())
-			{
-				write_concern.timeout(
-				std::chrono::milliseconds(timeout.get()));
+			if (timeout.is_initialized()) {
+				write_concern.timeout(std::chrono::milliseconds(timeout.get()));
 			}
 
-			if (nodes.is_initialized())
-			{
+			if (nodes.is_initialized()) {
 				write_concern.nodes(nodes.get());
 			}
 
-			if (tag.is_initialized())
-			{
-				write_concern.tag(
-				mongocxx::stdx::string_view(tag.get()));
+			if (tag.is_initialized()) {
+				write_concern.tag(mongocxx::stdx::string_view(tag.get()));
 			}
 
-			if (acknowledge_level.is_initialized())
-			{
-				if (acknowledge_level.get() == "k_acknowledged")
-				{
+			if (acknowledge_level.is_initialized()) {
+				if (acknowledge_level.get() == "k_acknowledged") {
+					write_concern.acknowledge_level(mongocxx::write_concern::level::k_acknowledged);
+				} else if (acknowledge_level.get() == "k_default") {
+					write_concern.acknowledge_level(mongocxx::write_concern::level::k_acknowledged);
+				} else if (acknowledge_level.get() == "k_majority") {
+					write_concern.acknowledge_level(mongocxx::write_concern::level::k_majority);
+				} else if (acknowledge_level.get() == "k_tag") {
+					write_concern.acknowledge_level(mongocxx::write_concern::level::k_tag);
+				} else if (acknowledge_level.get() == "k_unacknowledged") {
 					write_concern.acknowledge_level(
-					mongocxx::write_concern::level::
-						k_acknowledged);
-				}
-				else if (acknowledge_level.get() == "k_default")
-				{
-					write_concern.acknowledge_level(
-					mongocxx::write_concern::level::
-						k_acknowledged);
-				}
-				else if (acknowledge_level.get() == "k_majority")
-				{
-					write_concern.acknowledge_level(
-					mongocxx::write_concern::level::
-						k_majority);
-				}
-				else if (acknowledge_level.get() == "k_tag")
-				{
-					write_concern.acknowledge_level(
-					mongocxx::write_concern::level::k_tag);
-				}
-				else if (acknowledge_level.get() ==
-					 "k_unacknowledged")
-				{
-					write_concern.acknowledge_level(
-					mongocxx::write_concern::level::
-						k_unacknowledged);
+						mongocxx::write_concern::level::k_unacknowledged);
 				}
 
 				// add created write_concern to options
@@ -614,13 +488,10 @@ std::string iotdb::database::update_many(
 		}
 
 		// create cursor bu qyery and options
-		collection.update_many({filter_document}, {update_document},
-				   options);
+		collection.update_many({filter_document}, {update_document}, options);
 
 		return core::reply::answer_done();
-	}
-	catch (const mongocxx::exception &e)
-	{
+	} catch (const mongocxx::exception &e) {
 
 		// create json from error
 		return core::reply::database_error(e.what());
@@ -668,16 +539,16 @@ std::string iotdb::database::update_many(
  * or this one for errors
  * :"{"isSuccessful":false,"Message":" + what happened + "}"
  */
-std::string iotdb::database::update_one(
-	std::string username, std::string database_name,
-	bsoncxx::types::b_document filter_document,
-	bsoncxx::types::b_document update_document,
-	boost::optional<bsoncxx::types::b_document> collation,
-	boost::optional<std::string> acknowledge_level,
-	boost::optional<std::string> tag, boost::optional<bool> journal,
-	boost::optional<int> majority, boost::optional<int> timeout,
-	boost::optional<int> nodes, boost::optional<bool> upsert,
-	boost::optional<bool> bypass_document_validation)
+std::string iotdb::database::update_one(std::string username, std::string database_name,
+										bsoncxx::types::b_document filter_document,
+										bsoncxx::types::b_document update_document,
+										boost::optional<bsoncxx::types::b_document> collation,
+										boost::optional<std::string> acknowledge_level,
+										boost::optional<std::string> tag,
+										boost::optional<bool> journal,
+										boost::optional<int> majority, boost::optional<int> timeout,
+										boost::optional<int> nodes, boost::optional<bool> upsert,
+										boost::optional<bool> bypass_document_validation)
 {
 
 	// create connection
@@ -689,98 +560,64 @@ std::string iotdb::database::update_one(
 	// create collection
 	auto collection = database[database_name];
 
-	try
-	{
+	try {
 
 		// create option
 		mongocxx::options::update options = mongocxx::options::update{};
 
-		if (collation.is_initialized())
-		{
+		if (collation.is_initialized()) {
 			options.collation(collation.get().view());
 		}
 
-		if (upsert.is_initialized())
-		{
+		if (upsert.is_initialized()) {
 			options.upsert(upsert.get());
 		}
 
-		if (bypass_document_validation.is_initialized())
-		{
-			options.bypass_document_validation(
-			bypass_document_validation.get());
+		if (bypass_document_validation.is_initialized()) {
+			options.bypass_document_validation(bypass_document_validation.get());
 		}
 
-		if (journal.is_initialized() || majority.is_initialized() ||
-		timeout.is_initialized() || nodes.is_initialized() ||
-		tag.is_initialized() || acknowledge_level.is_initialized())
-		{
+		if (journal.is_initialized() || majority.is_initialized() || timeout.is_initialized()
+			|| nodes.is_initialized() || tag.is_initialized()
+			|| acknowledge_level.is_initialized()) {
 
 			// create write_concern
 			// https://docs.mongodb.com/manual/reference/glossary/#term-write-concern
-			mongocxx::write_concern write_concern =
-			mongocxx::write_concern();
+			mongocxx::write_concern write_concern = mongocxx::write_concern();
 
-			if (journal.is_initialized())
-			{
+			if (journal.is_initialized()) {
 				write_concern.journal(journal.get());
 			}
-			if (majority.is_initialized())
-			{
+			if (majority.is_initialized()) {
 
-				write_concern.majority(
-				std::chrono::milliseconds(majority.get()));
+				write_concern.majority(std::chrono::milliseconds(majority.get()));
 			}
 
-			if (timeout.is_initialized())
-			{
-				write_concern.timeout(
-				std::chrono::milliseconds(timeout.get()));
+			if (timeout.is_initialized()) {
+				write_concern.timeout(std::chrono::milliseconds(timeout.get()));
 			}
 
-			if (nodes.is_initialized())
-			{
+			if (nodes.is_initialized()) {
 				write_concern.nodes(nodes.get());
 			}
 
-			if (tag.is_initialized())
-			{
+			if (tag.is_initialized()) {
 
-				write_concern.tag(
-				mongocxx::stdx::string_view(tag.get()));
+				write_concern.tag(mongocxx::stdx::string_view(tag.get()));
 			}
 
-			if (acknowledge_level.is_initialized())
-			{
-				if (acknowledge_level.get() == "k_acknowledged")
-				{
+			if (acknowledge_level.is_initialized()) {
+				if (acknowledge_level.get() == "k_acknowledged") {
+					write_concern.acknowledge_level(mongocxx::write_concern::level::k_acknowledged);
+				} else if (acknowledge_level.get() == "k_default") {
+					write_concern.acknowledge_level(mongocxx::write_concern::level::k_acknowledged);
+				} else if (acknowledge_level.get() == "k_majority") {
+					write_concern.acknowledge_level(mongocxx::write_concern::level::k_majority);
+				} else if (acknowledge_level.get() == "k_tag") {
+					write_concern.acknowledge_level(mongocxx::write_concern::level::k_tag);
+				} else if (acknowledge_level.get() == "k_unacknowledged") {
 					write_concern.acknowledge_level(
-					mongocxx::write_concern::level::
-						k_acknowledged);
-				}
-				else if (acknowledge_level.get() == "k_default")
-				{
-					write_concern.acknowledge_level(
-					mongocxx::write_concern::level::
-						k_acknowledged);
-				}
-				else if (acknowledge_level.get() == "k_majority")
-				{
-					write_concern.acknowledge_level(
-					mongocxx::write_concern::level::
-						k_majority);
-				}
-				else if (acknowledge_level.get() == "k_tag")
-				{
-					write_concern.acknowledge_level(
-					mongocxx::write_concern::level::k_tag);
-				}
-				else if (acknowledge_level.get() ==
-					 "k_unacknowledged")
-				{
-					write_concern.acknowledge_level(
-					mongocxx::write_concern::level::
-						k_unacknowledged);
+						mongocxx::write_concern::level::k_unacknowledged);
 				}
 			}
 
@@ -789,13 +626,10 @@ std::string iotdb::database::update_one(
 		}
 
 		// create cursor bu qyery and options
-		collection.update_one({filter_document}, {update_document},
-				  options);
+		collection.update_one({filter_document}, {update_document}, options);
 
 		return core::reply::answer_done();
-	}
-	catch (const mongocxx::exception &e)
-	{
+	} catch (const mongocxx::exception &e) {
 
 		// create json from error
 		return core::reply::database_error(e.what());
@@ -849,17 +683,14 @@ std::string iotdb::database::update_one(
  * :"{"isSuccessful":false,"Message":" + what happened + "}"
  */
 std::string iotdb::database::find_one_and_update(
-	std::string username, std::string database_name,
-	bsoncxx::types::b_document filter_document,
+	std::string username, std::string database_name, bsoncxx::types::b_document filter_document,
 	bsoncxx::types::b_document update_document,
 	boost::optional<bsoncxx::types::b_document> projection_document,
 	boost::optional<bsoncxx::types::b_document> sort_document,
 	boost::optional<bsoncxx::types::b_document> collation,
-	boost::optional<std::string> acknowledge_level,
-	boost::optional<std::string> tag, boost::optional<bool> journal,
-	boost::optional<int> majority, boost::optional<int> timeout,
-	boost::optional<int> nodes, boost::optional<int> max_time,
-	boost::optional<bool> upsert)
+	boost::optional<std::string> acknowledge_level, boost::optional<std::string> tag,
+	boost::optional<bool> journal, boost::optional<int> majority, boost::optional<int> timeout,
+	boost::optional<int> nodes, boost::optional<int> max_time, boost::optional<bool> upsert)
 {
 
 	// create connection
@@ -871,101 +702,66 @@ std::string iotdb::database::find_one_and_update(
 	// create collection
 	auto collection = database[database_name];
 
-	try
-	{
+	try {
 
 		// create option
-		mongocxx::options::find_one_and_update options =
-		mongocxx::options::find_one_and_update{};
-		if (projection_document.is_initialized())
-		{
+		mongocxx::options::find_one_and_update options = mongocxx::options::find_one_and_update{};
+		if (projection_document.is_initialized()) {
 			options.projection(projection_document.get().view());
 		}
 
-		if (sort_document.is_initialized())
-		{
+		if (sort_document.is_initialized()) {
 			options.sort(sort_document.get().view());
 		}
 
-		if (collation.is_initialized())
-		{
+		if (collation.is_initialized()) {
 			options.collation(collation.get().view());
 		}
 
-		if (upsert.is_initialized())
-		{
+		if (upsert.is_initialized()) {
 			options.upsert(upsert.get());
 		}
 
-		if (journal.is_initialized() || majority.is_initialized() ||
-		timeout.is_initialized() || nodes.is_initialized() ||
-		tag.is_initialized() || acknowledge_level.is_initialized())
-		{
+		if (journal.is_initialized() || majority.is_initialized() || timeout.is_initialized()
+			|| nodes.is_initialized() || tag.is_initialized()
+			|| acknowledge_level.is_initialized()) {
 
 			// create write_concern
 			// https://docs.mongodb.com/manual/reference/glossary/#term-write-concern
-			mongocxx::write_concern write_concern =
-			mongocxx::write_concern();
+			mongocxx::write_concern write_concern = mongocxx::write_concern();
 
-			if (journal.is_initialized())
-			{
+			if (journal.is_initialized()) {
 				write_concern.journal(journal.get());
 			}
-			if (majority.is_initialized())
-			{
+			if (majority.is_initialized()) {
 
-				write_concern.majority(
-				std::chrono::milliseconds(majority.get()));
+				write_concern.majority(std::chrono::milliseconds(majority.get()));
 			}
 
-			if (timeout.is_initialized())
-			{
-				write_concern.timeout(
-				std::chrono::milliseconds(timeout.get()));
+			if (timeout.is_initialized()) {
+				write_concern.timeout(std::chrono::milliseconds(timeout.get()));
 			}
 
-			if (nodes.is_initialized())
-			{
+			if (nodes.is_initialized()) {
 				write_concern.nodes(nodes.get());
 			}
 
-			if (tag.is_initialized())
-			{
-				write_concern.tag(
-				mongocxx::stdx::string_view(tag.get()));
+			if (tag.is_initialized()) {
+				write_concern.tag(mongocxx::stdx::string_view(tag.get()));
 			}
 
-			if (acknowledge_level.is_initialized())
-			{
-				if (acknowledge_level.get() == "k_acknowledged")
-				{
+			if (acknowledge_level.is_initialized()) {
+				if (acknowledge_level.get() == "k_acknowledged") {
+					write_concern.acknowledge_level(mongocxx::write_concern::level::k_acknowledged);
+				} else if (acknowledge_level.get() == "k_default") {
+					write_concern.acknowledge_level(mongocxx::write_concern::level::k_acknowledged);
+				} else if (acknowledge_level.get() == "k_majority") {
+					write_concern.acknowledge_level(mongocxx::write_concern::level::k_majority);
+				} else if (acknowledge_level.get() == "k_tag") {
+					write_concern.acknowledge_level(mongocxx::write_concern::level::k_tag);
+				} else if (acknowledge_level.get() == "k_unacknowledged") {
 					write_concern.acknowledge_level(
-					mongocxx::write_concern::level::
-						k_acknowledged);
-				}
-				else if (acknowledge_level.get() == "k_default")
-				{
-					write_concern.acknowledge_level(
-					mongocxx::write_concern::level::
-						k_acknowledged);
-				}
-				else if (acknowledge_level.get() == "k_majority")
-				{
-					write_concern.acknowledge_level(
-					mongocxx::write_concern::level::
-						k_majority);
-				}
-				else if (acknowledge_level.get() == "k_tag")
-				{
-					write_concern.acknowledge_level(
-					mongocxx::write_concern::level::k_tag);
-				}
-				else if (acknowledge_level.get() ==
-					 "k_unacknowledged")
-				{
-					write_concern.acknowledge_level(
-					mongocxx::write_concern::level::
-						k_unacknowledged);
+						mongocxx::write_concern::level::k_unacknowledged);
 				}
 			}
 
@@ -974,19 +770,15 @@ std::string iotdb::database::find_one_and_update(
 		}
 
 		// add max_time to options
-		if (max_time.is_initialized())
-		{
+		if (max_time.is_initialized()) {
 			options.max_time(std::chrono::milliseconds(max_time.get()));
 		}
 
 		// create cursor bu qyery and options
-		collection.find_one_and_update({update_document}, {filter_document},
-					   options);
+		collection.find_one_and_update({update_document}, {filter_document}, options);
 
 		return core::reply::answer_done();
-	}
-	catch (const mongocxx::exception &e)
-	{
+	} catch (const mongocxx::exception &e) {
 
 		// create json from error
 		return core::reply::database_error(e.what());
@@ -1035,17 +827,14 @@ std::string iotdb::database::find_one_and_update(
  * :"{"isSuccessful":false,"Message":" + what happened + "}"
  */
 std::string iotdb::database::find_one_and_replace(
-	std::string username, std::string database_name,
-	bsoncxx::types::b_document filter_document,
+	std::string username, std::string database_name, bsoncxx::types::b_document filter_document,
 	bsoncxx::types::b_document replacement,
 	boost::optional<bsoncxx::types::b_document> projection_document,
 	boost::optional<bsoncxx::types::b_document> sort_document,
 	boost::optional<bsoncxx::types::b_document> collation,
-	boost::optional<std::string> acknowledge_level,
-	boost::optional<std::string> tag, boost::optional<bool> journal,
-	boost::optional<int> majority, boost::optional<int> timeout,
-	boost::optional<int> nodes, boost::optional<int> max_time,
-	boost::optional<bool> upsert,
+	boost::optional<std::string> acknowledge_level, boost::optional<std::string> tag,
+	boost::optional<bool> journal, boost::optional<int> majority, boost::optional<int> timeout,
+	boost::optional<int> nodes, boost::optional<int> max_time, boost::optional<bool> upsert,
 	boost::optional<bool> bypass_document_validation)
 {
 
@@ -1058,107 +847,70 @@ std::string iotdb::database::find_one_and_replace(
 	// create collection
 	auto collection = database[database_name];
 
-	try
-	{
+	try {
 
 		// create option
-		mongocxx::options::find_one_and_replace options =
-		mongocxx::options::find_one_and_replace{};
+		mongocxx::options::find_one_and_replace options = mongocxx::options::find_one_and_replace{};
 
-		if (projection_document.is_initialized())
-		{
+		if (projection_document.is_initialized()) {
 			options.projection(projection_document.get().view());
 		}
 
-		if (sort_document.is_initialized())
-		{
+		if (sort_document.is_initialized()) {
 			options.sort(sort_document.get().view());
 		}
 
-		if (collation.is_initialized())
-		{
+		if (collation.is_initialized()) {
 			options.collation(collation.get().view());
 		}
 
-		if (upsert.is_initialized())
-		{
+		if (upsert.is_initialized()) {
 			options.upsert(upsert.get());
 		}
 
-		if (bypass_document_validation.is_initialized())
-		{
-			options.bypass_document_validation(
-			bypass_document_validation.get());
+		if (bypass_document_validation.is_initialized()) {
+			options.bypass_document_validation(bypass_document_validation.get());
 		}
-		if (journal.is_initialized() || majority.is_initialized() ||
-		timeout.is_initialized() || nodes.is_initialized() ||
-		tag.is_initialized() || acknowledge_level.is_initialized())
-		{
+		if (journal.is_initialized() || majority.is_initialized() || timeout.is_initialized()
+			|| nodes.is_initialized() || tag.is_initialized()
+			|| acknowledge_level.is_initialized()) {
 
 			// create write_concern
 			// https://docs.mongodb.com/manual/reference/glossary/#term-write-concern
-			mongocxx::write_concern write_concern =
-			mongocxx::write_concern();
+			mongocxx::write_concern write_concern = mongocxx::write_concern();
 
-			if (journal.is_initialized())
-			{
+			if (journal.is_initialized()) {
 				write_concern.journal(journal.get());
 			}
-			if (majority.is_initialized())
-			{
+			if (majority.is_initialized()) {
 
-				write_concern.majority(
-				std::chrono::milliseconds(majority.get()));
+				write_concern.majority(std::chrono::milliseconds(majority.get()));
 			}
 
-			if (timeout.is_initialized())
-			{
-				write_concern.timeout(
-				std::chrono::milliseconds(timeout.get()));
+			if (timeout.is_initialized()) {
+				write_concern.timeout(std::chrono::milliseconds(timeout.get()));
 			}
 
-			if (nodes.is_initialized())
-			{
+			if (nodes.is_initialized()) {
 				write_concern.nodes(nodes.get());
 			}
 
-			if (tag.is_initialized())
-			{
-				write_concern.tag(
-				mongocxx::stdx::string_view(tag.get()));
+			if (tag.is_initialized()) {
+				write_concern.tag(mongocxx::stdx::string_view(tag.get()));
 			}
 
-			if (acknowledge_level.is_initialized())
-			{
-				if (acknowledge_level.get() == "k_acknowledged")
-				{
+			if (acknowledge_level.is_initialized()) {
+				if (acknowledge_level.get() == "k_acknowledged") {
+					write_concern.acknowledge_level(mongocxx::write_concern::level::k_acknowledged);
+				} else if (acknowledge_level.get() == "k_default") {
+					write_concern.acknowledge_level(mongocxx::write_concern::level::k_acknowledged);
+				} else if (acknowledge_level.get() == "k_majority") {
+					write_concern.acknowledge_level(mongocxx::write_concern::level::k_majority);
+				} else if (acknowledge_level.get() == "k_tag") {
+					write_concern.acknowledge_level(mongocxx::write_concern::level::k_tag);
+				} else if (acknowledge_level.get() == "k_unacknowledged") {
 					write_concern.acknowledge_level(
-					mongocxx::write_concern::level::
-						k_acknowledged);
-				}
-				else if (acknowledge_level.get() == "k_default")
-				{
-					write_concern.acknowledge_level(
-					mongocxx::write_concern::level::
-						k_acknowledged);
-				}
-				else if (acknowledge_level.get() == "k_majority")
-				{
-					write_concern.acknowledge_level(
-					mongocxx::write_concern::level::
-						k_majority);
-				}
-				else if (acknowledge_level.get() == "k_tag")
-				{
-					write_concern.acknowledge_level(
-					mongocxx::write_concern::level::k_tag);
-				}
-				else if (acknowledge_level.get() ==
-					 "k_unacknowledged")
-				{
-					write_concern.acknowledge_level(
-					mongocxx::write_concern::level::
-						k_unacknowledged);
+						mongocxx::write_concern::level::k_unacknowledged);
 				}
 			}
 
@@ -1170,13 +922,10 @@ std::string iotdb::database::find_one_and_replace(
 		options.max_time(std::chrono::milliseconds(max_time.get()));
 
 		// create cursor bu qyery and options
-		collection.find_one_and_replace({filter_document}, {replacement},
-						options);
+		collection.find_one_and_replace({filter_document}, {replacement}, options);
 
 		return core::reply::answer_done();
-	}
-	catch (const mongocxx::exception &e)
-	{
+	} catch (const mongocxx::exception &e) {
 
 		// create json from error
 		return core::reply::database_error(e.what());
@@ -1217,14 +966,14 @@ std::string iotdb::database::find_one_and_replace(
  * :"{"isSuccessful":false,"Message":" + what happened + "}"
  */
 
-std::string iotdb::database::delete_many(
-	std::string username, std::string database_name,
-	bsoncxx::types::b_document query_document,
-	boost::optional<bsoncxx::types::b_document> collation,
-	boost::optional<std::string> acknowledge_level,
-	boost::optional<std::string> tag, boost::optional<bool> journal,
-	boost::optional<int> majority, boost::optional<int> timeout,
-	boost::optional<int> nodes)
+std::string iotdb::database::delete_many(std::string username, std::string database_name,
+										 bsoncxx::types::b_document query_document,
+										 boost::optional<bsoncxx::types::b_document> collation,
+										 boost::optional<std::string> acknowledge_level,
+										 boost::optional<std::string> tag,
+										 boost::optional<bool> journal,
+										 boost::optional<int> majority,
+										 boost::optional<int> timeout, boost::optional<int> nodes)
 {
 
 	// create connection
@@ -1236,86 +985,54 @@ std::string iotdb::database::delete_many(
 	// create collection
 	auto collection = database[database_name];
 
-	try
-	{
+	try {
 
 		// create option
-		mongocxx::options::delete_options options =
-		mongocxx::options::delete_options{};
-		if (collation.is_initialized())
-		{
+		mongocxx::options::delete_options options = mongocxx::options::delete_options{};
+		if (collation.is_initialized()) {
 			options.collation(collation.get().view());
 		}
 
-		if (journal.is_initialized() || majority.is_initialized() ||
-		timeout.is_initialized() || nodes.is_initialized() ||
-		tag.is_initialized() || acknowledge_level.is_initialized())
-		{
+		if (journal.is_initialized() || majority.is_initialized() || timeout.is_initialized()
+			|| nodes.is_initialized() || tag.is_initialized()
+			|| acknowledge_level.is_initialized()) {
 
 			// create write_concern
 			// https://docs.mongodb.com/manual/reference/glossary/#term-write-concern
-			mongocxx::write_concern write_concern =
-			mongocxx::write_concern();
+			mongocxx::write_concern write_concern = mongocxx::write_concern();
 
-			if (journal.is_initialized())
-			{
+			if (journal.is_initialized()) {
 				write_concern.journal(journal.get());
 			}
-			if (majority.is_initialized())
-			{
+			if (majority.is_initialized()) {
 
-				write_concern.majority(
-				std::chrono::milliseconds(majority.get()));
+				write_concern.majority(std::chrono::milliseconds(majority.get()));
 			}
 
-			if (timeout.is_initialized())
-			{
-				write_concern.timeout(
-				std::chrono::milliseconds(timeout.get()));
+			if (timeout.is_initialized()) {
+				write_concern.timeout(std::chrono::milliseconds(timeout.get()));
 			}
 
-			if (nodes.is_initialized())
-			{
+			if (nodes.is_initialized()) {
 				write_concern.nodes(nodes.get());
 			}
 
-			if (tag.is_initialized())
-			{
-				write_concern.tag(
-				mongocxx::stdx::string_view(tag.get()));
+			if (tag.is_initialized()) {
+				write_concern.tag(mongocxx::stdx::string_view(tag.get()));
 			}
 
-			if (acknowledge_level.is_initialized())
-			{
-				if (acknowledge_level.get() == "k_acknowledged")
-				{
+			if (acknowledge_level.is_initialized()) {
+				if (acknowledge_level.get() == "k_acknowledged") {
+					write_concern.acknowledge_level(mongocxx::write_concern::level::k_acknowledged);
+				} else if (acknowledge_level.get() == "k_default") {
+					write_concern.acknowledge_level(mongocxx::write_concern::level::k_acknowledged);
+				} else if (acknowledge_level.get() == "k_majority") {
+					write_concern.acknowledge_level(mongocxx::write_concern::level::k_majority);
+				} else if (acknowledge_level.get() == "k_tag") {
+					write_concern.acknowledge_level(mongocxx::write_concern::level::k_tag);
+				} else if (acknowledge_level.get() == "k_unacknowledged") {
 					write_concern.acknowledge_level(
-					mongocxx::write_concern::level::
-						k_acknowledged);
-				}
-				else if (acknowledge_level.get() == "k_default")
-				{
-					write_concern.acknowledge_level(
-					mongocxx::write_concern::level::
-						k_acknowledged);
-				}
-				else if (acknowledge_level.get() == "k_majority")
-				{
-					write_concern.acknowledge_level(
-					mongocxx::write_concern::level::
-						k_majority);
-				}
-				else if (acknowledge_level.get() == "k_tag")
-				{
-					write_concern.acknowledge_level(
-					mongocxx::write_concern::level::k_tag);
-				}
-				else if (acknowledge_level.get() ==
-					 "k_unacknowledged")
-				{
-					write_concern.acknowledge_level(
-					mongocxx::write_concern::level::
-						k_unacknowledged);
+						mongocxx::write_concern::level::k_unacknowledged);
 				}
 			}
 
@@ -1327,9 +1044,7 @@ std::string iotdb::database::delete_many(
 		collection.delete_many({query_document}, options);
 
 		return core::reply::answer_done();
-	}
-	catch (const mongocxx::exception &e)
-	{
+	} catch (const mongocxx::exception &e) {
 
 		// create json from error
 		return core::reply::database_error(e.what());
@@ -1370,14 +1085,14 @@ std::string iotdb::database::delete_many(
  * :"{"isSuccessful":false,"Message":" + what happened + "}"
  */
 
-std::string iotdb::database::delete_one(
-	std::string username, std::string database_name,
-	bsoncxx::types::b_document query_document,
-	boost::optional<bsoncxx::types::b_document> collation,
-	boost::optional<std::string> acknowledge_level,
-	boost::optional<std::string> tag, boost::optional<bool> journal,
-	boost::optional<int> majority, boost::optional<int> timeout,
-	boost::optional<int> nodes)
+std::string iotdb::database::delete_one(std::string username, std::string database_name,
+										bsoncxx::types::b_document query_document,
+										boost::optional<bsoncxx::types::b_document> collation,
+										boost::optional<std::string> acknowledge_level,
+										boost::optional<std::string> tag,
+										boost::optional<bool> journal,
+										boost::optional<int> majority, boost::optional<int> timeout,
+										boost::optional<int> nodes)
 {
 
 	// create connection
@@ -1389,86 +1104,54 @@ std::string iotdb::database::delete_one(
 	// create collection
 	auto collection = database[database_name];
 
-	try
-	{
+	try {
 
 		// create option
-		mongocxx::options::delete_options options =
-		mongocxx::options::delete_options{};
+		mongocxx::options::delete_options options = mongocxx::options::delete_options{};
 
-		if (collation.is_initialized())
-		{
+		if (collation.is_initialized()) {
 			options.collation(collation.get().view());
 		}
 
-		if (journal.is_initialized() || majority.is_initialized() ||
-		timeout.is_initialized() || nodes.is_initialized() ||
-		tag.is_initialized() || acknowledge_level.is_initialized())
-		{
+		if (journal.is_initialized() || majority.is_initialized() || timeout.is_initialized()
+			|| nodes.is_initialized() || tag.is_initialized()
+			|| acknowledge_level.is_initialized()) {
 
 			// create write_concern
 			// https://docs.mongodb.com/manual/reference/glossary/#term-write-concern
-			mongocxx::write_concern write_concern =
-			mongocxx::write_concern();
+			mongocxx::write_concern write_concern = mongocxx::write_concern();
 
-			if (journal.is_initialized())
-			{
+			if (journal.is_initialized()) {
 				write_concern.journal(journal.get());
 			}
-			if (majority.is_initialized())
-			{
+			if (majority.is_initialized()) {
 
-				write_concern.majority(
-				std::chrono::milliseconds(majority.get()));
+				write_concern.majority(std::chrono::milliseconds(majority.get()));
 			}
 
-			if (timeout.is_initialized())
-			{
-				write_concern.timeout(
-				std::chrono::milliseconds(timeout.get()));
+			if (timeout.is_initialized()) {
+				write_concern.timeout(std::chrono::milliseconds(timeout.get()));
 			}
 
-			if (nodes.is_initialized())
-			{
+			if (nodes.is_initialized()) {
 				write_concern.nodes(nodes.get());
 			}
 
-			if (tag.is_initialized())
-			{
-				write_concern.tag(
-				mongocxx::stdx::string_view(tag.get()));
+			if (tag.is_initialized()) {
+				write_concern.tag(mongocxx::stdx::string_view(tag.get()));
 			}
-			if (acknowledge_level.is_initialized())
-			{
-				if (acknowledge_level.get() == "k_acknowledged")
-				{
+			if (acknowledge_level.is_initialized()) {
+				if (acknowledge_level.get() == "k_acknowledged") {
+					write_concern.acknowledge_level(mongocxx::write_concern::level::k_acknowledged);
+				} else if (acknowledge_level.get() == "k_default") {
+					write_concern.acknowledge_level(mongocxx::write_concern::level::k_acknowledged);
+				} else if (acknowledge_level.get() == "k_majority") {
+					write_concern.acknowledge_level(mongocxx::write_concern::level::k_majority);
+				} else if (acknowledge_level.get() == "k_tag") {
+					write_concern.acknowledge_level(mongocxx::write_concern::level::k_tag);
+				} else if (acknowledge_level.get() == "k_unacknowledged") {
 					write_concern.acknowledge_level(
-					mongocxx::write_concern::level::
-						k_acknowledged);
-				}
-				else if (acknowledge_level.get() == "k_default")
-				{
-					write_concern.acknowledge_level(
-					mongocxx::write_concern::level::
-						k_acknowledged);
-				}
-				else if (acknowledge_level.get() == "k_majority")
-				{
-					write_concern.acknowledge_level(
-					mongocxx::write_concern::level::
-						k_majority);
-				}
-				else if (acknowledge_level.get() == "k_tag")
-				{
-					write_concern.acknowledge_level(
-					mongocxx::write_concern::level::k_tag);
-				}
-				else if (acknowledge_level.get() ==
-					 "k_unacknowledged")
-				{
-					write_concern.acknowledge_level(
-					mongocxx::write_concern::level::
-						k_unacknowledged);
+						mongocxx::write_concern::level::k_unacknowledged);
 				}
 			}
 
@@ -1480,9 +1163,7 @@ std::string iotdb::database::delete_one(
 		collection.delete_one({query_document}, options);
 
 		return core::reply::answer_done();
-	}
-	catch (const mongocxx::exception &e)
-	{
+	} catch (const mongocxx::exception &e) {
 
 		// create json from error
 		return core::reply::database_error(e.what());
@@ -1531,14 +1212,12 @@ std::string iotdb::database::delete_one(
  * :"{"isSuccessful":false,"Message":" + what happened + "}"
  */
 std::string iotdb::database::find_one_and_delete(
-	std::string username, std::string database_name,
-	bsoncxx::types::b_document query_document,
+	std::string username, std::string database_name, bsoncxx::types::b_document query_document,
 	boost::optional<bsoncxx::types::b_document> projection_document,
 	boost::optional<bsoncxx::types::b_document> sort_document,
 	boost::optional<bsoncxx::types::b_document> collation,
-	boost::optional<std::string> acknowledge_level,
-	boost::optional<std::string> tag, boost::optional<bool> journal,
-	boost::optional<int> majority, boost::optional<int> timeout,
+	boost::optional<std::string> acknowledge_level, boost::optional<std::string> tag,
+	boost::optional<bool> journal, boost::optional<int> majority, boost::optional<int> timeout,
 	boost::optional<int> nodes, boost::optional<int> max_time)
 {
 
@@ -1551,98 +1230,64 @@ std::string iotdb::database::find_one_and_delete(
 	// create collection
 	auto collection = database[database_name];
 
-	try
-	{
+	try {
 
 		// create option
-		mongocxx::options::find_one_and_delete options =
-		mongocxx::options::find_one_and_delete{};
+		mongocxx::options::find_one_and_delete options = mongocxx::options::find_one_and_delete{};
 
-		if (projection_document.is_initialized())
-		{
+		if (projection_document.is_initialized()) {
 			options.projection(projection_document.get().view());
 		}
 
-		if (sort_document.is_initialized())
-		{
+		if (sort_document.is_initialized()) {
 
 			options.sort(sort_document.get().view());
 		}
 
-		if (collation.is_initialized())
-		{
+		if (collation.is_initialized()) {
 			options.collation(collation.get().view());
 		}
 
-		if (journal.is_initialized() || majority.is_initialized() ||
-		timeout.is_initialized() || nodes.is_initialized() ||
-		tag.is_initialized() || acknowledge_level.is_initialized())
-		{
+		if (journal.is_initialized() || majority.is_initialized() || timeout.is_initialized()
+			|| nodes.is_initialized() || tag.is_initialized()
+			|| acknowledge_level.is_initialized()) {
 
 			// create write_concern
 			// https://docs.mongodb.com/manual/reference/glossary/#term-write-concern
-			mongocxx::write_concern write_concern =
-			mongocxx::write_concern();
+			mongocxx::write_concern write_concern = mongocxx::write_concern();
 
-			if (journal.is_initialized())
-			{
+			if (journal.is_initialized()) {
 				write_concern.journal(journal.get());
 			}
-			if (majority.is_initialized())
-			{
+			if (majority.is_initialized()) {
 
-				write_concern.majority(
-				std::chrono::milliseconds(majority.get()));
+				write_concern.majority(std::chrono::milliseconds(majority.get()));
 			}
 
-			if (timeout.is_initialized())
-			{
-				write_concern.timeout(
-				std::chrono::milliseconds(timeout.get()));
+			if (timeout.is_initialized()) {
+				write_concern.timeout(std::chrono::milliseconds(timeout.get()));
 			}
 
-			if (nodes.is_initialized())
-			{
+			if (nodes.is_initialized()) {
 				write_concern.nodes(nodes.get());
 			}
 
-			if (tag.is_initialized())
-			{
-				write_concern.tag(
-				mongocxx::stdx::string_view(tag.get()));
+			if (tag.is_initialized()) {
+				write_concern.tag(mongocxx::stdx::string_view(tag.get()));
 			}
 
-			if (acknowledge_level.is_initialized())
-			{
-				if (acknowledge_level.get() == "k_acknowledged")
-				{
+			if (acknowledge_level.is_initialized()) {
+				if (acknowledge_level.get() == "k_acknowledged") {
+					write_concern.acknowledge_level(mongocxx::write_concern::level::k_acknowledged);
+				} else if (acknowledge_level.get() == "k_default") {
+					write_concern.acknowledge_level(mongocxx::write_concern::level::k_acknowledged);
+				} else if (acknowledge_level.get() == "k_majority") {
+					write_concern.acknowledge_level(mongocxx::write_concern::level::k_majority);
+				} else if (acknowledge_level.get() == "k_tag") {
+					write_concern.acknowledge_level(mongocxx::write_concern::level::k_tag);
+				} else if (acknowledge_level.get() == "k_unacknowledged") {
 					write_concern.acknowledge_level(
-					mongocxx::write_concern::level::
-						k_acknowledged);
-				}
-				else if (acknowledge_level.get() == "k_default")
-				{
-					write_concern.acknowledge_level(
-					mongocxx::write_concern::level::
-						k_acknowledged);
-				}
-				else if (acknowledge_level.get() == "k_majority")
-				{
-					write_concern.acknowledge_level(
-					mongocxx::write_concern::level::
-						k_majority);
-				}
-				else if (acknowledge_level.get() == "k_tag")
-				{
-					write_concern.acknowledge_level(
-					mongocxx::write_concern::level::k_tag);
-				}
-				else if (acknowledge_level.get() ==
-					 "k_unacknowledged")
-				{
-					write_concern.acknowledge_level(
-					mongocxx::write_concern::level::
-						k_unacknowledged);
+						mongocxx::write_concern::level::k_unacknowledged);
 				}
 			}
 
@@ -1651,8 +1296,7 @@ std::string iotdb::database::find_one_and_delete(
 		}
 
 		// add max_time to options
-		if (max_time.is_initialized())
-		{
+		if (max_time.is_initialized()) {
 			options.max_time(std::chrono::milliseconds(max_time.get()));
 		}
 
@@ -1660,9 +1304,7 @@ std::string iotdb::database::find_one_and_delete(
 		collection.find_one_and_delete({query_document}, options);
 
 		return core::reply::answer_done();
-	}
-	catch (const mongocxx::exception &e)
-	{
+	} catch (const mongocxx::exception &e) {
 
 		// create json from error
 		return core::reply::database_error(e.what());
@@ -1683,11 +1325,10 @@ std::string iotdb::database::find_one_and_delete(
  * or this one for errors
  * :"{"isSuccessful":false,"Message":" + what happened + "}"
  */
-std::string iotdb::database::count(std::string username,
-				   std::string database_name,
-				   bsoncxx::types::b_document query_document,
-				   boost::optional<size_t> limit_number_of_docs,
-				   boost::optional<size_t> skip_number_of_docs)
+std::string iotdb::database::count(std::string username, std::string database_name,
+								   bsoncxx::types::b_document query_document,
+								   boost::optional<size_t> limit_number_of_docs,
+								   boost::optional<size_t> skip_number_of_docs)
 {
 	// create connection
 	mongocxx::client connection{mongocxx::uri{}};
@@ -1698,21 +1339,18 @@ std::string iotdb::database::count(std::string username,
 	// create collection
 	auto collection = database[database_name];
 
-	try
-	{
+	try {
 
 		// create option
 		mongocxx::options::count options = mongocxx::options::count{};
 
 		// limit number of docs
-		if (limit_number_of_docs.is_initialized())
-		{
+		if (limit_number_of_docs.is_initialized()) {
 			options.limit(limit_number_of_docs.get());
 		}
 
 		// skip number of docs
-		if (skip_number_of_docs.is_initialized())
-		{
+		if (skip_number_of_docs.is_initialized()) {
 			options.skip(skip_number_of_docs.get());
 		}
 
@@ -1721,9 +1359,7 @@ std::string iotdb::database::count(std::string username,
 
 		// make reply json
 		return core::reply::answer(std::to_string(cursor));
-	}
-	catch (const mongocxx::exception &e)
-	{
+	} catch (const mongocxx::exception &e) {
 		// make error json
 		return core::reply::database_error(e.what());
 	}
@@ -1738,8 +1374,7 @@ std::string iotdb::database::count(std::string username,
  * @return				: success or failure message
  */
 
-std::string iotdb::database::drop(std::string username,
-				  std::string database_name)
+std::string iotdb::database::drop(std::string username, std::string database_name)
 {
 
 	// create connection
@@ -1751,16 +1386,13 @@ std::string iotdb::database::drop(std::string username,
 	// create collection
 	auto collection = database[database_name];
 
-	try
-	{
+	try {
 
 		// drop collection
 		collection.drop();
 
 		return core::reply::answer_done();
-	}
-	catch (const mongocxx::exception &e)
-	{
+	} catch (const mongocxx::exception &e) {
 
 		// create json from error
 		return core::reply::database_error(e.what());
@@ -1812,26 +1444,20 @@ std::string iotdb::database::drop(std::string username,
  */
 
 std::string iotdb::database::create_index(
-	std::string username, std::string database_name,
-	bsoncxx::types::b_document index_document, bool options_is_set,
-	boost::optional<bool> background, boost::optional<bool> unique,
+	std::string username, std::string database_name, bsoncxx::types::b_document index_document,
+	bool options_is_set, boost::optional<bool> background, boost::optional<bool> unique,
 	boost::optional<bool> sparse, boost::optional<std::int32_t> version,
 	boost::optional<std::uint8_t> twod_sphere_version,
-	boost::optional<std::uint8_t> twod_bits_precision,
-	boost::optional<double> twod_location_max,
-	boost::optional<double> twod_location_min,
-	boost::optional<double> haystack_bucket_size,
+	boost::optional<std::uint8_t> twod_bits_precision, boost::optional<double> twod_location_max,
+	boost::optional<double> twod_location_min, boost::optional<double> haystack_bucket_size,
 	boost::optional<size_t> expire_after, boost::optional<std::string> name,
-	boost::optional<std::string> default_language,
-	boost::optional<std::string> language_override,
+	boost::optional<std::string> default_language, boost::optional<std::string> language_override,
 	boost::optional<bsoncxx::types::b_document> collation,
 	boost::optional<bsoncxx::types::b_document> weights,
 	boost::optional<bsoncxx::types::b_document> partial_filter_expression,
-	boost::optional<size_t> max_time,
-	boost::optional<std::string> acknowledge_level,
-	boost::optional<std::string> tag, boost::optional<bool> journal,
-	boost::optional<int> majority, boost::optional<int> timeout,
-	boost::optional<int> nodes)
+	boost::optional<size_t> max_time, boost::optional<std::string> acknowledge_level,
+	boost::optional<std::string> tag, boost::optional<bool> journal, boost::optional<int> majority,
+	boost::optional<int> timeout, boost::optional<int> nodes)
 {
 	// create connection
 	mongocxx::client connection{mongocxx::uri{}};
@@ -1842,186 +1468,128 @@ std::string iotdb::database::create_index(
 	// create collection
 	mongocxx::collection collection = database[database_name];
 
-	try
-	{
+	try {
 
 		mongocxx::options::index options;
 
-		if (options_is_set)
-		{
+		if (options_is_set) {
 
-			if (background.is_initialized())
-			{
+			if (background.is_initialized()) {
 				options.background(background.get());
 			}
 
-			if (unique.is_initialized())
-			{
+			if (unique.is_initialized()) {
 				options.unique(unique.get());
 			}
 
-			if (sparse.is_initialized())
-			{
+			if (sparse.is_initialized()) {
 				options.sparse(sparse.get());
 			}
 
-			if (version.is_initialized())
-			{
+			if (version.is_initialized()) {
 				options.version(version.get());
 			}
 
-			if (twod_sphere_version.is_initialized())
-			{
-				options.twod_sphere_version(
-				twod_sphere_version.get());
+			if (twod_sphere_version.is_initialized()) {
+				options.twod_sphere_version(twod_sphere_version.get());
 			}
 
-			if (twod_bits_precision.is_initialized())
-			{
-				options.twod_bits_precision(
-				twod_bits_precision.get());
+			if (twod_bits_precision.is_initialized()) {
+				options.twod_bits_precision(twod_bits_precision.get());
 			}
 
-			if (twod_location_max.is_initialized())
-			{
+			if (twod_location_max.is_initialized()) {
 				options.twod_location_max(twod_location_max.get());
 			}
 
-			if (twod_location_min.is_initialized())
-			{
+			if (twod_location_min.is_initialized()) {
 				options.twod_location_min(twod_location_min.get());
 			}
 
-			if (haystack_bucket_size.is_initialized())
-			{
-				options.haystack_bucket_size(
-				haystack_bucket_size.get());
+			if (haystack_bucket_size.is_initialized()) {
+				options.haystack_bucket_size(haystack_bucket_size.get());
 			}
 
-			if (expire_after.is_initialized())
-			{
-				options.expire_after(
-				std::chrono::seconds(expire_after.get()));
+			if (expire_after.is_initialized()) {
+				options.expire_after(std::chrono::seconds(expire_after.get()));
 			}
 
-			if (name.is_initialized())
-			{
-				bsoncxx::string::view_or_value temp_name{
-				name.get()};
+			if (name.is_initialized()) {
+				bsoncxx::string::view_or_value temp_name{name.get()};
 				options.name(temp_name);
 			}
 
-			if (default_language.is_initialized())
-			{
+			if (default_language.is_initialized()) {
 
-				bsoncxx::string::view_or_value
-				temp_default_language{default_language.get()};
+				bsoncxx::string::view_or_value temp_default_language{default_language.get()};
 				options.default_language(temp_default_language);
 			}
 
-			if (language_override.is_initialized())
-			{
-				bsoncxx::string::view_or_value
-				temp_language_override{language_override.get()};
+			if (language_override.is_initialized()) {
+				bsoncxx::string::view_or_value temp_language_override{language_override.get()};
 				options.language_override(temp_language_override);
 			}
 
-			if (collation.is_initialized())
-			{
+			if (collation.is_initialized()) {
 				options.collation(collation.get());
 			}
 
-			if (weights.is_initialized())
-			{
+			if (weights.is_initialized()) {
 				options.weights(weights.get());
 			}
 
-			if (partial_filter_expression.is_initialized())
-			{
-				options.partial_filter_expression(
-				partial_filter_expression.get());
+			if (partial_filter_expression.is_initialized()) {
+				options.partial_filter_expression(partial_filter_expression.get());
 			}
 		}
 
-		mongocxx::options::index_view operation_options =
-		mongocxx::options::index_view{};
+		mongocxx::options::index_view operation_options = mongocxx::options::index_view{};
 
-		if (max_time.is_initialized())
-		{
-			operation_options.max_time(
-			std::chrono::milliseconds(max_time.get()));
+		if (max_time.is_initialized()) {
+			operation_options.max_time(std::chrono::milliseconds(max_time.get()));
 		}
 
-		if (journal.is_initialized() || majority.is_initialized() ||
-		timeout.is_initialized() || nodes.is_initialized() ||
-		tag.is_initialized() || acknowledge_level.is_initialized())
-		{
+		if (journal.is_initialized() || majority.is_initialized() || timeout.is_initialized()
+			|| nodes.is_initialized() || tag.is_initialized()
+			|| acknowledge_level.is_initialized()) {
 
 			// create write_concern
 			// https://docs.mongodb.com/manual/reference/glossary/#term-write-concern
-			mongocxx::write_concern write_concern =
-			mongocxx::write_concern();
+			mongocxx::write_concern write_concern = mongocxx::write_concern();
 
-			if (journal.is_initialized())
-			{
+			if (journal.is_initialized()) {
 				write_concern.journal(journal.get());
 			}
-			if (majority.is_initialized())
-			{
+			if (majority.is_initialized()) {
 
-				write_concern.majority(
-				std::chrono::milliseconds(majority.get()));
+				write_concern.majority(std::chrono::milliseconds(majority.get()));
 			}
 
-			if (timeout.is_initialized())
-			{
-				write_concern.timeout(
-				std::chrono::milliseconds(timeout.get()));
+			if (timeout.is_initialized()) {
+				write_concern.timeout(std::chrono::milliseconds(timeout.get()));
 			}
 
-			if (nodes.is_initialized())
-			{
+			if (nodes.is_initialized()) {
 				write_concern.nodes(nodes.get());
 			}
 
-			if (tag.is_initialized())
-			{
+			if (tag.is_initialized()) {
 
-				write_concern.tag(
-				mongocxx::stdx::string_view(tag.get()));
+				write_concern.tag(mongocxx::stdx::string_view(tag.get()));
 			}
 
-			if (acknowledge_level.is_initialized())
-			{
-				if (acknowledge_level.get() == "k_acknowledged")
-				{
+			if (acknowledge_level.is_initialized()) {
+				if (acknowledge_level.get() == "k_acknowledged") {
+					write_concern.acknowledge_level(mongocxx::write_concern::level::k_acknowledged);
+				} else if (acknowledge_level.get() == "k_default") {
+					write_concern.acknowledge_level(mongocxx::write_concern::level::k_acknowledged);
+				} else if (acknowledge_level.get() == "k_majority") {
+					write_concern.acknowledge_level(mongocxx::write_concern::level::k_majority);
+				} else if (acknowledge_level.get() == "k_tag") {
+					write_concern.acknowledge_level(mongocxx::write_concern::level::k_tag);
+				} else if (acknowledge_level.get() == "k_unacknowledged") {
 					write_concern.acknowledge_level(
-					mongocxx::write_concern::level::
-						k_acknowledged);
-				}
-				else if (acknowledge_level.get() == "k_default")
-				{
-					write_concern.acknowledge_level(
-					mongocxx::write_concern::level::
-						k_acknowledged);
-				}
-				else if (acknowledge_level.get() == "k_majority")
-				{
-					write_concern.acknowledge_level(
-					mongocxx::write_concern::level::
-						k_majority);
-				}
-				else if (acknowledge_level.get() == "k_tag")
-				{
-					write_concern.acknowledge_level(
-					mongocxx::write_concern::level::k_tag);
-				}
-				else if (acknowledge_level.get() ==
-					 "k_unacknowledged")
-				{
-					write_concern.acknowledge_level(
-					mongocxx::write_concern::level::
-						k_unacknowledged);
+						mongocxx::write_concern::level::k_unacknowledged);
 				}
 			}
 
@@ -2030,13 +1598,10 @@ std::string iotdb::database::create_index(
 		}
 
 		// create index
-		collection.create_index(index_document.view(), options,
-					operation_options);
+		collection.create_index(index_document.view(), options, operation_options);
 
 		return core::reply::answer_done();
-	}
-	catch (const mongocxx::exception &e)
-	{
+	} catch (const mongocxx::exception &e) {
 
 		// create json from error
 		return core::reply::database_error(e.what());
@@ -2050,8 +1615,7 @@ std::string iotdb::database::create_index(
  * @return				: name of collection in json
  */
 
-std::string iotdb::database::name(std::string username,
-				  std::string database_name)
+std::string iotdb::database::name(std::string username, std::string database_name)
 {
 	// create connection
 	mongocxx::client connection{mongocxx::uri{}};
@@ -2062,8 +1626,7 @@ std::string iotdb::database::name(std::string username,
 	// create collection
 	mongocxx::collection collection = database[database_name];
 
-	try
-	{
+	try {
 
 		// create option
 		mongocxx::options::count options = mongocxx::options::count{};
@@ -2072,9 +1635,7 @@ std::string iotdb::database::name(std::string username,
 
 		// make reply json
 		return core::reply::answer(cursor.to_string());
-	}
-	catch (const mongocxx::exception &e)
-	{
+	} catch (const mongocxx::exception &e) {
 		// make error json
 		return core::reply::database_error(e.what());
 	}
@@ -2087,8 +1648,7 @@ std::string iotdb::database::name(std::string username,
  * @return 				: an array of indexes of collection
  */
 
-std::string iotdb::database::list_indexes(std::string username,
-					  std::string database_name)
+std::string iotdb::database::list_indexes(std::string username, std::string database_name)
 {
 	// create connection
 	mongocxx::client connection{mongocxx::uri{}};
@@ -2096,20 +1656,17 @@ std::string iotdb::database::list_indexes(std::string username,
 	// create xollection
 	auto collection = connection[username][database_name];
 
-	try
-	{
+	try {
 		auto cursor = collection.list_indexes();
 		std::string reply{};
 
 		reply.append("[");
-		for (auto &&doc : cursor)
-		{
+		for (auto &&doc : cursor) {
 			reply.append(bsoncxx::to_json(doc) + ",");
 		}
 
 		// remove final "," character if ther is any element
-		if (reply.size() > 2)
-		{
+		if (reply.size() > 2) {
 			reply.erase(reply.size() - 1, 1);
 		}
 
@@ -2117,20 +1674,17 @@ std::string iotdb::database::list_indexes(std::string username,
 
 		// make reply json
 		return core::reply::answer(reply);
-	}
-	catch (const mongocxx::exception &e)
-	{
+	} catch (const mongocxx::exception &e) {
 		// make error json
 		return core::reply::database_error(e.what());
 	}
 }
 
-std::string
-iotdb::database::distinct(std::string username, std::string database_name,
-			  std::string name_string,
-			  bsoncxx::types::b_document filter_document,
-			  boost::optional<bsoncxx::types::b_document> collation,
-			  boost::optional<size_t> max_time)
+std::string iotdb::database::distinct(std::string username, std::string database_name,
+									  std::string name_string,
+									  bsoncxx::types::b_document filter_document,
+									  boost::optional<bsoncxx::types::b_document> collation,
+									  boost::optional<size_t> max_time)
 {
 	// create connection
 	mongocxx::client connection{mongocxx::uri{}};
@@ -2141,353 +1695,253 @@ iotdb::database::distinct(std::string username, std::string database_name,
 	// create collection
 	mongocxx::collection collection = database[database_name];
 
-	try
-	{
+	try {
 
 		// create option
 		mongocxx::options::distinct options = mongocxx::options::distinct();
-		if (collation.is_initialized())
-		{
+		if (collation.is_initialized()) {
 
 			options.collation(collation.get().view());
 		}
 
-		if (max_time.is_initialized())
-		{
+		if (max_time.is_initialized()) {
 
 			options.max_time(std::chrono::milliseconds(max_time.get()));
 		}
 
 		bsoncxx::string::view_or_value name_view{name_string};
 
-		auto cursor =
-		collection.distinct(name_view, {filter_document}, options);
+		auto cursor = collection.distinct(name_view, {filter_document}, options);
 
 		// make reply json
 		return core::reply::answer("cursor.to_string()");
-	}
-	catch (const mongocxx::exception &e)
-	{
+	} catch (const mongocxx::exception &e) {
 		// make error json
 		return core::reply::database_error(e.what());
 	}
 }
 
-void iotdb::database::aggregate_oprate(mongocxx::pipeline &pipeline,
-					   bsoncxx::types::b_document doc)
+void iotdb::database::aggregate_oprate(mongocxx::pipeline &pipeline, bsoncxx::types::b_document doc)
 {
 
 	bool successful{false};
-	try
-	{
+	try {
 		auto op_doc = doc.view()["match"].get_document();
 		pipeline.match(op_doc.view());
 		successful = true;
-	}
-	catch (...)
-	{
+	} catch (...) {
 		successful = false;
 	}
 
-	if (!successful)
-	{
-		try
-		{
+	if (!successful) {
+		try {
 			auto op_doc = doc.view()["project"].get_document();
 			pipeline.project(op_doc.view());
 			successful = true;
-		}
-		catch (...)
-		{
+		} catch (...) {
 			successful = false;
 		}
 	}
 
-	if (!successful)
-	{
-		try
-		{
+	if (!successful) {
+		try {
 			int limit = doc.view()["limit"].get_int32();
 			pipeline.limit(limit);
 			successful = true;
-		}
-		catch (...)
-		{
+		} catch (...) {
 			successful = false;
 		}
 	}
 
-	if (!successful)
-	{
-		try
-		{
+	if (!successful) {
+		try {
 			int sample = doc.view()["sample"].get_int32();
 			pipeline.sample(sample);
 			successful = true;
-		}
-		catch (...)
-		{
+		} catch (...) {
 			successful = false;
 		}
 	}
-	if (!successful)
-	{
-		try
-		{
+	if (!successful) {
+		try {
 			int skip = doc.view()["skip"].get_int32();
 			pipeline.skip(skip);
 			successful = true;
-		}
-		catch (...)
-		{
+		} catch (...) {
 			successful = false;
 		}
 	}
-	if (!successful)
-	{
-		try
-		{
-			std::string out =
-			doc.view()["out"].get_utf8().value.to_string();
+	if (!successful) {
+		try {
+			std::string out = doc.view()["out"].get_utf8().value.to_string();
 			pipeline.out(out);
 			successful = true;
-		}
-		catch (...)
-		{
+		} catch (...) {
 			successful = false;
 		}
 	}
-	if (!successful)
-	{
-		try
-		{
-			std::string count =
-			doc.view()["count"].get_utf8().value.to_string();
+	if (!successful) {
+		try {
+			std::string count = doc.view()["count"].get_utf8().value.to_string();
 			pipeline.count(count);
 			successful = true;
-		}
-		catch (...)
-		{
+		} catch (...) {
 			successful = false;
 		}
 	}
-	if (!successful)
-	{
-		try
-		{
+	if (!successful) {
+		try {
 			auto op_doc = doc.view()["add_fields"].get_document();
 			pipeline.add_fields(op_doc.view());
 			successful = true;
-		}
-		catch (...)
-		{
+		} catch (...) {
 			successful = false;
 		}
 	}
-	if (!successful)
-	{
-		try
-		{
+	if (!successful) {
+		try {
 			auto op_doc = doc.view()["bucket"].get_document();
 			pipeline.bucket(op_doc.view());
 			successful = true;
-		}
-		catch (...)
-		{
+		} catch (...) {
 			successful = false;
 		}
 	}
-	if (!successful)
-	{
-		try
-		{
+	if (!successful) {
+		try {
 			auto op_doc = doc.view()["bucket_auto"].get_document();
 			pipeline.bucket_auto(op_doc.view());
 			successful = true;
-		}
-		catch (...)
-		{
+		} catch (...) {
 			successful = false;
 		}
 	}
-	if (!successful)
-	{
-		try
-		{
+	if (!successful) {
+		try {
 			auto op_doc = doc.view()["coll_stats"].get_document();
 			pipeline.coll_stats(op_doc.view());
 			successful = true;
-		}
-		catch (...)
-		{
+		} catch (...) {
 			successful = false;
 		}
 	}
-	if (!successful)
-	{
-		try
-		{
+	if (!successful) {
+		try {
 			auto op_doc = doc.view()["facet"].get_document();
 			pipeline.facet(op_doc.view());
 			successful = true;
-		}
-		catch (...)
-		{
+		} catch (...) {
 			successful = false;
 		}
 	}
-	if (!successful)
-	{
-		try
-		{
+	if (!successful) {
+		try {
 			auto op_doc = doc.view()["geo_near"].get_document();
 			pipeline.geo_near(op_doc.view());
 			successful = true;
-		}
-		catch (...)
-		{
+		} catch (...) {
 			successful = false;
 		}
 	}
-	if (!successful)
-	{
-		try
-		{
+	if (!successful) {
+		try {
 			auto op_doc = doc.view()["graph_lookup"].get_document();
 			pipeline.graph_lookup(op_doc.view());
 			successful = true;
-		}
-		catch (...)
-		{
+		} catch (...) {
 			successful = false;
 		}
 	}
-	if (!successful)
-	{
-		try
-		{
+	if (!successful) {
+		try {
 			auto op_doc = doc.view()["group"].get_document();
 			pipeline.group(op_doc.view());
 			successful = true;
-		}
-		catch (...)
-		{
+		} catch (...) {
 			successful = false;
 		}
 	}
-	if (!successful)
-	{
-		try
-		{
+	if (!successful) {
+		try {
 			auto op_doc = doc.view()["lookup"].get_document();
 			pipeline.lookup(op_doc.view());
 			successful = true;
-		}
-		catch (...)
-		{
+		} catch (...) {
 			successful = false;
 		}
 	}
 
-	if (!successful)
-	{
-		try
-		{
+	if (!successful) {
+		try {
 			auto op_doc = doc.view()["redact"].get_document();
 			pipeline.redact(op_doc.view());
 			successful = true;
-		}
-		catch (...)
-		{
+		} catch (...) {
 			successful = false;
 		}
 	}
 
-	if (!successful)
-	{
-		try
-		{
+	if (!successful) {
+		try {
 			auto op_doc = doc.view()["replace_root"].get_document();
 			pipeline.replace_root(op_doc.view());
 			successful = true;
-		}
-		catch (...)
-		{
+		} catch (...) {
 			successful = false;
 		}
 	}
-	if (!successful)
-	{
-		try
-		{
+	if (!successful) {
+		try {
 			auto op_doc = doc.view()["sort"].get_document();
 			pipeline.sort(op_doc.view());
 			successful = true;
-		}
-		catch (...)
-		{
+		} catch (...) {
 			successful = false;
 		}
 	}
 
-	if (!successful)
-	{
-		try
-		{
+	if (!successful) {
+		try {
 			auto op_doc = doc.view()["sort_by_count"].get_document();
 			pipeline.sort_by_count(op_doc.view());
 			successful = true;
-		}
-		catch (...)
-		{
+		} catch (...) {
 			successful = false;
 		}
 	}
 
-	if (!successful)
-	{
-		try
-		{
+	if (!successful) {
+		try {
 			auto op_doc = doc.view()["unwind"].get_document();
 			pipeline.unwind(op_doc.view());
 			successful = true;
-		}
-		catch (...)
-		{
+		} catch (...) {
 			successful = false;
 		}
 	}
 
-	if (!successful)
-	{
-		try
-		{
+	if (!successful) {
+		try {
 			bool op_doc = doc.view()["index_stats"].get_bool();
-			if (op_doc)
-			{
+			if (op_doc) {
 				pipeline.index_stats();
 			}
 			successful = true;
-		}
-		catch (...)
-		{
+		} catch (...) {
 			successful = false;
 		}
 	}
 
-	if (!successful)
-	{
+	if (!successful) {
 		throw std::invalid_argument("invalid pipeline opration");
 	}
 }
 
 std::string iotdb::database::aggregate(
-	std::string username, std::string database_name,
-	optional_bool allow_disk_use, optional_bool use_cursor,
-	optional_bool bypass_document_validation, optional_size max_time,
-	optional_int batch_size, optional_ducument collation,
-	optional_string acknowledge_level, optional_string tag,
-	optional_bool journal, optional_int majority, optional_int timeout,
+	std::string username, std::string database_name, optional_bool allow_disk_use,
+	optional_bool use_cursor, optional_bool bypass_document_validation, optional_size max_time,
+	optional_int batch_size, optional_ducument collation, optional_string acknowledge_level,
+	optional_string tag, optional_bool journal, optional_int majority, optional_int timeout,
 	optional_int nodes, optional_ducument hint, optional_string hint_str,
 	optional_array pipeline_array)
 {
@@ -2499,112 +1953,74 @@ std::string iotdb::database::aggregate(
 	// create collection
 	mongocxx::collection collection = database[database_name];
 
-	try
-	{
-		mongocxx::options::aggregate options =
-		mongocxx::options::aggregate();
+	try {
+		mongocxx::options::aggregate options = mongocxx::options::aggregate();
 
-		if (allow_disk_use.is_initialized())
-		{
+		if (allow_disk_use.is_initialized()) {
 			options.allow_disk_use(allow_disk_use.get());
 		}
 
-		if (use_cursor.is_initialized())
-		{
+		if (use_cursor.is_initialized()) {
 			options.use_cursor(use_cursor.get());
 		}
 
-		if (bypass_document_validation.is_initialized())
-		{
-			options.bypass_document_validation(
-			bypass_document_validation.get());
+		if (bypass_document_validation.is_initialized()) {
+			options.bypass_document_validation(bypass_document_validation.get());
 		}
 
-		if (max_time.is_initialized())
-		{
+		if (max_time.is_initialized()) {
 			options.max_time(std::chrono::milliseconds(max_time.get()));
 		}
 
-		if (batch_size.is_initialized())
-		{
+		if (batch_size.is_initialized()) {
 			options.batch_size(batch_size.get());
 		}
 
-		if (collation.is_initialized())
-		{
+		if (collation.is_initialized()) {
 			options.collation(collation.get().view());
 		}
 
-		if (journal.is_initialized() || majority.is_initialized() ||
-		timeout.is_initialized() || nodes.is_initialized() ||
-		tag.is_initialized() || acknowledge_level.is_initialized())
-		{
+		if (journal.is_initialized() || majority.is_initialized() || timeout.is_initialized()
+			|| nodes.is_initialized() || tag.is_initialized()
+			|| acknowledge_level.is_initialized()) {
 
 			// create write_concern
 			// https://docs.mongodb.com/manual/reference/glossary/#term-write-concern
-			mongocxx::write_concern write_concern =
-			mongocxx::write_concern();
+			mongocxx::write_concern write_concern = mongocxx::write_concern();
 
-			if (journal.is_initialized())
-			{
+			if (journal.is_initialized()) {
 				write_concern.journal(journal.get());
 			}
-			if (majority.is_initialized())
-			{
+			if (majority.is_initialized()) {
 
-				write_concern.majority(
-				std::chrono::milliseconds(majority.get()));
+				write_concern.majority(std::chrono::milliseconds(majority.get()));
 			}
 
-			if (timeout.is_initialized())
-			{
-				write_concern.timeout(
-				std::chrono::milliseconds(timeout.get()));
+			if (timeout.is_initialized()) {
+				write_concern.timeout(std::chrono::milliseconds(timeout.get()));
 			}
 
-			if (nodes.is_initialized())
-			{
+			if (nodes.is_initialized()) {
 				write_concern.nodes(nodes.get());
 			}
 
-			if (tag.is_initialized())
-			{
+			if (tag.is_initialized()) {
 
-				write_concern.tag(
-				mongocxx::stdx::string_view(tag.get()));
+				write_concern.tag(mongocxx::stdx::string_view(tag.get()));
 			}
 
-			if (acknowledge_level.is_initialized())
-			{
-				if (acknowledge_level.get() == "k_acknowledged")
-				{
+			if (acknowledge_level.is_initialized()) {
+				if (acknowledge_level.get() == "k_acknowledged") {
+					write_concern.acknowledge_level(mongocxx::write_concern::level::k_acknowledged);
+				} else if (acknowledge_level.get() == "k_default") {
+					write_concern.acknowledge_level(mongocxx::write_concern::level::k_acknowledged);
+				} else if (acknowledge_level.get() == "k_majority") {
+					write_concern.acknowledge_level(mongocxx::write_concern::level::k_majority);
+				} else if (acknowledge_level.get() == "k_tag") {
+					write_concern.acknowledge_level(mongocxx::write_concern::level::k_tag);
+				} else if (acknowledge_level.get() == "k_unacknowledged") {
 					write_concern.acknowledge_level(
-					mongocxx::write_concern::level::
-						k_acknowledged);
-				}
-				else if (acknowledge_level.get() == "k_default")
-				{
-					write_concern.acknowledge_level(
-					mongocxx::write_concern::level::
-						k_acknowledged);
-				}
-				else if (acknowledge_level.get() == "k_majority")
-				{
-					write_concern.acknowledge_level(
-					mongocxx::write_concern::level::
-						k_majority);
-				}
-				else if (acknowledge_level.get() == "k_tag")
-				{
-					write_concern.acknowledge_level(
-					mongocxx::write_concern::level::k_tag);
-				}
-				else if (acknowledge_level.get() ==
-					 "k_unacknowledged")
-				{
-					write_concern.acknowledge_level(
-					mongocxx::write_concern::level::
-						k_unacknowledged);
+						mongocxx::write_concern::level::k_unacknowledged);
 				}
 			}
 
@@ -2612,12 +2028,9 @@ std::string iotdb::database::aggregate(
 			options.write_concern(write_concern);
 		}
 
-		if (hint.is_initialized())
-		{
+		if (hint.is_initialized()) {
 			options.hint(mongocxx::hint(hint.get().view()));
-		}
-		else if (hint_str.is_initialized())
-		{
+		} else if (hint_str.is_initialized()) {
 			options.hint(mongocxx::hint(hint_str.get()));
 		}
 
@@ -2629,37 +2042,30 @@ std::string iotdb::database::aggregate(
 
 		mongocxx::pipeline pipeline = mongocxx::pipeline();
 
-		if (pipeline_array.is_initialized())
-		{
-			for (const auto &element : pipeline_array.get().value)
-			{
-				bsoncxx::types::b_document doc =
-				element.get_value().get_document();
+		if (pipeline_array.is_initialized()) {
+			for (const auto &element : pipeline_array.get().value) {
+				bsoncxx::types::b_document doc = element.get_value().get_document();
 				aggregate_oprate(pipeline, doc);
 			}
 		}
 		auto cursor = collection.aggregate(pipeline, options);
 
 		std::string reply{};
-		reply.append("[");
-		for (auto &&doc : cursor)
-		{
+		//		reply.append("{");
+		for (auto &&doc : cursor) {
 			reply.append(bsoncxx::to_json(doc) + ",");
 		}
 
 		// remove final "," character if ther is any element
-		if (reply.size() > 2)
-		{
+		if (reply.size() > 2) {
 			reply.erase(reply.size() - 1, 1);
 		}
 
-		reply.append("]");
+		//		reply.append("}");
 
 		// make reply json
 		return core::reply::answer(reply);
-	}
-	catch (const mongocxx::exception &e)
-	{
+	} catch (const mongocxx::exception &e) {
 		// make error json
 		return core::reply::database_error(e.what());
 	}
